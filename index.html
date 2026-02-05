@@ -1,327 +1,67 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Valentine?</title>
+<script>
+  const yesBtn = document.getElementById("yesBtn");
+  const noBtn  = document.getElementById("noBtn");
+  const msg    = document.getElementById("msg");
+  const popLayer = document.getElementById("popLayer");
+  const bgHearts  = document.getElementById("bgHearts");
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
-
-  <style>
-    :root{
-      --pink1:#ffe0f1;
-      --pink2:#ffb3d9;
-      --pink3:#ff4fa3;
-      --pink4:#ff2b84;
-      --card: rgba(255,255,255,.82);
-      --text:#3a2a33;
-      --shadow: 0 20px 80px rgba(255, 45, 122, .22);
+  // Background hearts
+  (function initBgHearts(){
+    const hearts = ["💗","💖","💕","💘","💞"];
+    const count = 26;
+    for (let i = 0; i < count; i++){
+      const s = document.createElement("span");
+      s.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+      s.style.left = Math.random() * 100 + "vw";
+      s.style.animationDelay = (Math.random() * 6) + "s";
+      s.style.fontSize = (14 + Math.random() * 16) + "px";
+      s.style.animationDuration = (7 + Math.random() * 6) + "s";
+      bgHearts.appendChild(s);
     }
+  })();
 
-    *{ box-sizing:border-box; }
+  // YES growth settings
+  let scale = 1;
+  const growthFactor = 1.35;              // grows each NO click
+  const maxScaleBeforeFullscreen = 7.25;  // take over screen
 
-    body{
-      margin:0;
-      min-height:100vh;
-      display:grid;
-      place-items:center;
-      font-family: "Fredoka", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(circle at 20% 10%, #fff7fd 0%, transparent 35%),
-        radial-gradient(circle at 80% 0%, #ffe0f1 0%, transparent 40%),
-        radial-gradient(circle at 50% 110%, #ffe8f6 0%, transparent 45%),
-        linear-gradient(135deg, var(--pink1), var(--pink2));
-      overflow:hidden;
+  function popHearts(x, y, n = 10){
+    const hearts = ["💗","💖","💕","💘","✨"];
+    for (let i = 0; i < n; i++){
+      const h = document.createElement("div");
+      h.className = "pop";
+      h.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+      h.style.left = (x + (Math.random() * 46 - 23)) + "px";
+      h.style.top  = (y + (Math.random() * 36 - 18)) + "px";
+      h.style.fontSize = (18 + Math.random() * 14) + "px";
+      popLayer.appendChild(h);
+      setTimeout(() => h.remove(), 1450);
     }
+  }
 
-    .bg-hearts{
-      position:fixed; inset:0;
-      pointer-events:none;
-      opacity:.35;
-    }
-    .bg-hearts span{
-      position:absolute;
-      font-size:18px;
-      animation: drift 9s linear infinite;
-      user-select:none;
-    }
-    @keyframes drift{
-      from { transform: translateY(110vh) translateX(0) rotate(0deg); opacity:0; }
-      10%  { opacity:.75; }
-      to   { transform: translateY(-20vh) translateX(60px) rotate(35deg); opacity:0; }
-    }
+  function updateYesSize(){
+    yesBtn.style.transform = `scale(${scale})`;
+    yesBtn.style.zIndex = scale >= 2 ? 70 : "auto";
 
-    .card{
-      width:min(720px, 92vw);
-      background:var(--card);
-      border:1px solid rgba(255,255,255,.9);
-      border-radius:34px;
-      padding:28px 22px 22px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      text-align:center;
-      position:relative;
-    }
-
-    .title{
-      font-family: "Pacifico", "Fredoka", cursive;
-      font-size: clamp(30px, 4.6vw, 52px);
-      margin: 8px 0 8px;
-      letter-spacing: .3px;
-    }
-
-    .ask{
-      margin: 0 auto 14px;
-      font-size: 18px;
-      line-height: 1.35;
-      font-weight: 600;
-      opacity:.95;
-      max-width: 46ch;
-    }
-
-    .gif-wrap{
-      margin: 14px auto 18px;
-      width: min(460px, 92%);
-      border-radius: 26px;
-      overflow:hidden;
-      border: 2px solid rgba(255, 79, 163, .22);
-      box-shadow: 0 16px 50px rgba(0,0,0,.08);
-      background:#fff;
-    }
-    .gif-wrap img{
-      width:100%;
-      height:auto;
-      display:block;
-    }
-
-    .btn-row{
-      margin-top: 10px;
-      display:flex;
-      gap: 14px;
-      justify-content:center;
-      align-items:center;
-      flex-wrap:wrap;
-      min-height: 70px;
-      position:relative;
-    }
-
-    button{
-      border:0;
-      border-radius:999px;
-      padding: 14px 24px;
-      font-size: 18px;
-      font-weight: 800;
-      cursor:pointer;
-      transition: transform 160ms ease, filter 160ms ease;
-      user-select:none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    button:active{ transform: translateY(1px) scale(.98); }
-
-    #yesBtn{
-      background: linear-gradient(135deg, var(--pink3), var(--pink4));
-      color:#fff;
-      box-shadow: 0 16px 36px rgba(255, 45, 122, .35);
-      transform-origin:center;
-    }
-    #yesBtn:hover{ filter: brightness(1.03); }
-
-    #noBtn{
-      background: rgba(0,0,0,.07);
-      color:#2a2026;
-      box-shadow: 0 12px 22px rgba(0,0,0,.10);
-      position:relative;
-    }
-
-    .msg{
-      margin-top: 14px;
-      font-size: 16px;
-      font-weight: 800;
-      min-height: 22px;
-      opacity:.9;
-    }
-
-    .pop-layer{
-      position:fixed; inset:0;
-      pointer-events:none;
-      overflow:hidden;
-      z-index: 9000;
-    }
-    .pop{
-      position:absolute;
-      font-size: 20px;
-      opacity: .9;
-      animation: popFloat 1.35s ease-out forwards;
-      filter: drop-shadow(0 8px 12px rgba(0,0,0,.12));
-    }
-    @keyframes popFloat{
-      from { transform: translateY(0) scale(.85); opacity:0; }
-      10%  { opacity:.95; }
-      to   { transform: translateY(-140px) scale(1.25); opacity:0; }
-    }
-
-    .fullscreen-yes #yesBtn{
-      position:fixed;
-      inset:0;
-      width:100vw;
-      height:100vh;
-      border-radius:0;
-      font-size: clamp(36px, 8vw, 90px);
-      z-index: 9999;
-      box-shadow:none;
-    }
-    .fullscreen-yes .card{
-      opacity:.10;
-      transform: scale(.98);
-      transition: opacity 220ms ease, transform 220ms ease;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="bg-hearts" id="bgHearts" aria-hidden="true"></div>
-  <div class="pop-layer" id="popLayer" aria-hidden="true"></div>
-
-  <div class="card">
-    <div class="title">Be My Valentine?</div>
-
-    <p class="ask" id="askText">
-      hey David I really really like you and think we should go out for valentines day
-      can you please be my valentines uwu Baka
-    </p>
-
-    <div class="gif-wrap">
-      <img src="cats.gif" alt="Cute cats gif">
-    </div>
-
-    <div class="btn-row">
-      <button id="yesBtn">YES</button>
-      <button id="noBtn">no</button>
-    </div>
-
-    <div class="msg" id="msg"></div>
-  </div>
-
-  <script>
-    const yesBtn = document.getElementById("yesBtn");
-    const noBtn  = document.getElementById("noBtn");
-    const msg    = document.getElementById("msg");
-    const askText = document.getElementById("askText");
-    const popLayer = document.getElementById("popLayer");
-    const bgHearts  = document.getElementById("bgHearts");
-
-    // Background hearts
-    (function initBgHearts(){
-      const hearts = ["💗","💖","💕","💘","💞"];
-      const count = 26;
-      for (let i = 0; i < count; i++){
-        const s = document.createElement("span");
-        s.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-        s.style.left = Math.random() * 100 + "vw";
-        s.style.animationDelay = (Math.random() * 6) + "s";
-        s.style.fontSize = (14 + Math.random() * 16) + "px";
-        s.style.animationDuration = (7 + Math.random() * 6) + "s";
-        bgHearts.appendChild(s);
-      }
-    })();
-
-    // YES growth settings
-    let scale = 1;
-    const growthFactor = 1.35;              // grows each NO click
-    const maxScaleBeforeFullscreen = 7.25;  // take over screen
-
-    // Escalating "are you sure?" prompts
-    const surePrompts = [
-      "Are you sure? 🥺",
-      "Like… REALLY sure??",
-      "Okay wait—are you super sure?",
-      "One more time… are you sure?? 😭",
-      "David please 😔 are you sure??",
-      "Bestie… that’s the wrong button 😭 are you sure??",
-      "I’m literally gonna make YES huge… are you sure?? 😈"
-    ];
-
-    let noClicks = 0;
-
-    function popHearts(x, y, n = 10){
-      const hearts = ["💗","💖","💕","💘","✨"];
-      for (let i = 0; i < n; i++){
-        const h = document.createElement("div");
-        h.className = "pop";
-        h.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-        h.style.left = (x + (Math.random() * 46 - 23)) + "px";
-        h.style.top  = (y + (Math.random() * 36 - 18)) + "px";
-        h.style.fontSize = (18 + Math.random() * 14) + "px";
-        popLayer.appendChild(h);
-        setTimeout(() => h.remove(), 1450);
-      }
-    }
-
-    function randomizeNoButton(){
-      // keep NO on screen, but move it around so it's still clickable
-      const padding = 14;
-      const rect = noBtn.getBoundingClientRect();
-      const maxX = window.innerWidth  - rect.width  - padding;
-      const maxY = window.innerHeight - rect.height - padding;
-
-      const x = Math.max(padding, Math.random() * maxX);
-      const y = Math.max(padding, Math.random() * maxY);
-
-      noBtn.style.position = "fixed";
-      noBtn.style.left = x + "px";
-      noBtn.style.top  = y + "px";
-      noBtn.style.zIndex = 60;
-    }
-
-    function updateYesSize(){
-      yesBtn.style.transform = `scale(${scale})`;
-      yesBtn.style.zIndex = scale >= 2 ? 70 : "auto";
-
-      if (scale >= maxScaleBeforeFullscreen){
-        document.body.classList.add("fullscreen-yes");
-        msg.textContent = "Only one choice now 😌";
-      }
-    }
-
-    function updatePromptText(){
-      // cycles through surePrompts, then repeats the last one
-      const idx = Math.min(noClicks, surePrompts.length - 1);
-      msg.textContent = surePrompts[idx];
-    }
-
-    noBtn.addEventListener("click", (e) => {
-      // 1) Increase click count
-      noClicks++;
-
-      // 2) Update the "are you sure?" prompt
-      updatePromptText();
-
-      // 3) Grow YES every time, even on repeated clicks
-      scale *= growthFactor;
-      updateYesSize();
-
-      // 4) Cute effects
-      popHearts(e.clientX, e.clientY, 12);
-
-      // 5) Keep NO still present but move it somewhere else
-      randomizeNoButton();
-    });
-
-    yesBtn.addEventListener("click", (e) => {
-      popHearts(e.clientX, e.clientY, 18);
+    if (scale >= maxScaleBeforeFullscreen){
       document.body.classList.add("fullscreen-yes");
-      msg.textContent = "YAYYYYY 💗";
-      noBtn.disabled = true;
-      noBtn.style.opacity = 0.2;
-      noBtn.style.pointerEvents = "none";
-    });
+    }
+  }
 
-    window.addEventListener("resize", () => {
-      if (noBtn.style.position === "fixed") randomizeNoButton();
-    });
-  </script>
-</body>
-</html>
+  // NO stays in place — just grows YES
+  noBtn.addEventListener("click", (e) => {
+    scale *= growthFactor;
+    updateYesSize();
+    msg.textContent = "";         // no text changing
+    popHearts(e.clientX, e.clientY, 12);
+  });
+
+  yesBtn.addEventListener("click", (e) => {
+    popHearts(e.clientX, e.clientY, 18);
+    document.body.classList.add("fullscreen-yes");
+    msg.textContent = "YAYYYYY 💗";
+    noBtn.disabled = true;
+    noBtn.style.opacity = 0.2;
+    noBtn.style.pointerEvents = "none";
+  });
+</script>
