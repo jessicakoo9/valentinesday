@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Be My Valentine?</title>
+  <style>
+    :root {
+      --bg1: #ffb3d9;
+      --bg2: #ffd1e8;
+      --text: #2b2b2b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, var(--bg2), var(--bg1));
+      overflow: hidden;
+    }
+
+    .card {
+      width: min(560px, 92vw);
+      background: rgba(255,255,255,0.75);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 28px;
+      padding: 28px 22px;
+      text-align: center;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      margin: 0 0 18px;
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .btn-row {
+      margin-top: 14px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      position: relative;
+      min-height: 64px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:active { transform: translateY(1px) scale(0.98); }
+
+    #yesBtn {
+      background: #ff2d7a;
+      color: white;
+      box-shadow: 0 14px 30px rgba(255, 45, 122, 0.35);
+      transform-origin: center;
+    }
+
+    #noBtn {
+      background: rgba(0,0,0,0.08);
+      color: #222;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.10);
+      position: relative;
+    }
+
+    .msg {
+      margin-top: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      min-height: 22px;
+    }
+
+    .hearts {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .heart {
+      position: absolute;
+      font-size: 18px;
+      opacity: 0.75;
+      animation: floatUp 1.4s ease-out forwards;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.12));
+    }
+
+    @keyframes floatUp {
+      from { transform: translateY(0) scale(0.9); opacity: 0.0; }
+      10% { opacity: 0.85; }
+      to { transform: translateY(-120px) scale(1.2); opacity: 0; }
+    }
+
+    /* When "YES" takes over */
+    .fullscreen-yes #yesBtn {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      font-size: clamp(34px, 8vw, 70px);
+      z-index: 9999;
+      box-shadow: none;
+    }
+
+    .fullscreen-yes .card {
+      opacity: 0.15;
+      transform: scale(0.98);
+      transition: opacity 250ms ease, transform 250ms ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="hearts" id="hearts"></div>
+
+  <div class="card">
+    <h1>Will you be my Valentine? 💘</h1>
+    <p>Choose wisely… I’m very persuasive 😌</p>
+
+    <div class="btn-row">
+      <button id="yesBtn">YES 💖</button>
+      <button id="noBtn">no 😭</button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <script>
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn  = document.getElementById("noBtn");
+    const msg    = document.getElementById("msg");
+    const hearts = document.getElementById("hearts");
+
+    // Scale growth settings
+    let scale = 1;
+    const growthFactor = 1.35;     // how much bigger YES gets per "no"
+    const maxScaleBeforeFullscreen = 8; // when to cover the screen
+
+    const noMessages = [
+      "Are you sure? 🥺",
+      "Try again 😇",
+      "Wrong button, baby 😏",
+      "I can do this all day 💅",
+      "Okay but… YES is right there 😘",
+      "You’re making YES stronger 😂"
+    ];
+
+    function popHeart(x, y) {
+      const h = document.createElement("div");
+      h.className = "heart";
+      h.textContent = Math.random() > 0.5 ? "💖" : "💗";
+      h.style.left = (x + (Math.random() * 30 - 15)) + "px";
+      h.style.top  = (y + (Math.random() * 20 - 10)) + "px";
+      hearts.appendChild(h);
+      setTimeout(() => h.remove(), 1500);
+    }
+
+    function randomizeNoButton() {
+      // Make the "no" button dodge around a bit (within viewport)
+      const padding = 16;
+      const btnRect = noBtn.getBoundingClientRect();
+      const maxX = window.innerWidth  - btnRect.width  - padding;
+      const maxY = window.innerHeight - btnRect.height - padding;
+
+      const x = Math.max(padding, Math.random() * maxX);
+      const y = Math.max(padding, Math.random() * maxY);
+
+      // Use fixed positioning so it can run away anywhere
+      noBtn.style.position = "fixed";
+      noBtn.style.left = x + "px";
+      noBtn.style.top  = y + "px";
+      noBtn.style.zIndex = 50;
+    }
+
+    function updateYesSize() {
+      yesBtn.style.transform = `scale(${scale})`;
+      // if it’s getting huge, bring it forward
+      yesBtn.style.position = scale >= 2 ? "relative" : "static";
+      yesBtn.style.zIndex = scale >= 2 ? 60 : "auto";
+
+      if (scale >= maxScaleBeforeFullscreen) {
+        document.body.classList.add("fullscreen-yes");
+        msg.textContent = "Only one choice now 😌💘";
+      }
+    }
+
+    noBtn.addEventListener("click", (e) => {
+      // Grow YES
+      scale *= growthFactor;
+      updateYesSize();
+
+      // Taunt message
+      msg.textContent = noMessages[Math.floor(Math.random() * noMessages.length)];
+
+      // Hearts near click
+      popHeart(e.clientX, e.clientY);
+      popHeart(e.clientX + 12, e.clientY + 6);
+
+      // Make NO dodge away
+      randomizeNoButton();
+    });
+
+    yesBtn.addEventListener("click", (e) => {
+      document.body.classList.add("fullscreen-yes");
+      msg.textContent = "YAYYYYY 💖 See you on Valentine’s 😚";
+      popHeart(e.clientX, e.clientY);
+      for (let i = 0; i < 12; i++) {
+        popHeart(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+      }
+      // Optional: disable "no"
+      noBtn.disabled = true;
+      noBtn.style.opacity = 0.2;
+    });
+
+    // On resize, keep dodgy NO in bounds
+    window.addEventListener("resize", () => {
+      if (noBtn.style.position === "fixed") randomizeNoButton();
+    });
+  </script>
+</body>
+</html>
